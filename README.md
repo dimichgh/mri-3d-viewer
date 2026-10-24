@@ -10,10 +10,15 @@ works, and what to do about it — on a schematic anatomy model, in Russian and 
 - Hover a marker for an explanation, spoken by the browser's own speech synthesis or shown as
   text (the button at the top switches). Click to fly to it. Doctor mode adds technical detail.
 - MRI-like slices of the model, shown beside the matching cut of the 3D view.
+- A plan panel (what to do and when, key measurements against her own normal levels, safety
+  rules) and a guided tour of the findings, most important first.
+- Each finding says how the images compare with the written report (confirmed, revised, not
+  confirmed).
 
-**This is not a diagnosis and not the patient's images.** The model is schematic: it was built
-from the written radiology reports, not from the scans. The patient is not identified.
-All decisions belong with the treating doctors.
+**This is not a diagnosis, and the patient's images are not included.** The model is schematic:
+findings are placed from the written radiology report and from a specialist-style review of the
+scans, so positions are approximate. The patient is not identified. All decisions belong with
+the treating doctors.
 
 Static files only: open `index.html` locally, or serve the folder from any static host.
 

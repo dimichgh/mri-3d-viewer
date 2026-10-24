@@ -17,15 +17,16 @@
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; background: var(--bg0); color: var(--ink); font: 13px/1.45 var(--sans); overflow: hidden; }
   button { font: inherit; color: inherit; }
-  #app { --lw: 272px; --rw: 330px; display: grid; grid-template-rows: 52px 1fr 30px; grid-template-columns: var(--lw) 1fr var(--rw); height: 100vh; height: 100dvh; }
-  #left { grid-area: 2 / 1; } #viewport { grid-area: 2 / 2; } #right { grid-area: 2 / 3; }
+  #app { --lw: 272px; --rw: 330px; --sw: 0px; display: grid; grid-template-rows: 52px 1fr 30px; grid-template-columns: var(--lw) var(--sw) minmax(0, 1fr) var(--rw); height: 100vh; height: 100dvh; }
+  #left { grid-area: 2 / 1; } #scanview { grid-area: 2 / 2; } #viewport { grid-area: 2 / 3; } #right { grid-area: 2 / 4; }
+  #app.scan-open { grid-template-columns: var(--lw) minmax(0, 1.25fr) minmax(0, 1fr) var(--rw); }
   #app.left-closed { --lw: 0px; } #app.left-closed #left { display: none; }
   #app.right-closed { --rw: 0px; } #app.right-closed #right { display: none; }
   #scrim { display: none; }
   .tbtn .n { font-family: var(--mono); color: var(--muted); margin-left: 3px; }
   header { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 16px; border-bottom: 1px solid var(--line);
     background: linear-gradient(180deg, #0b1222, #070b16); }
-  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand { display: flex; align-items: center; gap: 10px; flex: none; }
   .logo { width: 26px; height: 26px; border-radius: 7px; background: conic-gradient(from 200deg, #38b6ff, #ffd23f, #ff5e13, #38b6ff); box-shadow: 0 0 18px rgba(56,182,255,.35); flex: none; }
   #title { font-weight: 600; font-size: 15px; letter-spacing: .01em; white-space: nowrap; }
   #study { color: var(--muted); font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -139,13 +140,104 @@
   #slicebox.mini { width: 200px; padding: 6px 8px 8px; } #slicebox.mini .sb-head { font-size: 11px; margin-bottom: 4px; }
   #slicebox.mini .sb-note, #slicebox.mini .card-actions, #slicebox.mini .sbar-l, #slicebox.mini .sbar { display: none; }
   #slicebox.mini .sb-img img { cursor: zoom-in; } #slicebox.mini .sdot { width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+  /* the patient's own MRI slices, beside the 3D view */
+  #scanview { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #020309; border-right: 1px solid var(--line); }
+  .sv-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .sv-head .seg { grid-template-columns: repeat(2, auto); }
+  .sv-head .seg button { padding: 5px 12px; }
+  .sv-series { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+  .sv-series .btn { padding: 4px 8px; font-size: 11.5px; }
+  .sv-head .x { background: none; border: 0; font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; }
+  .sv-stage { position: relative; flex: 1; min-height: 180px; overflow: hidden; background: #000; touch-action: none; cursor: crosshair; }
+  .sv-stage[data-tool=pan] { cursor: grab; } .sv-stage[data-tool=wl] { cursor: ns-resize; }
+  .sv-layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .sv-layer canvas, .sv-layer svg { position: absolute; left: 0; top: 0; display: block; }
+  .sv-layer svg { overflow: visible; }
+  .sv-stage .o { position: absolute; font-family: var(--mono); font-size: 12px; color: #ffd75e; text-shadow: 0 0 3px #000; pointer-events: none; }
+  .sv-info { position: absolute; left: 10px; top: 8px; font-family: var(--mono); font-size: 11.5px; color: #dfe8f7; text-shadow: 0 0 3px #000, 0 0 2px #000; pointer-events: none; line-height: 1.4; }
+  .sv-info span { color: var(--muted); }
+  .sv-wl { position: absolute; right: 10px; bottom: 8px; font-family: var(--mono); font-size: 11px; color: #9fd0ff; pointer-events: none; }
+  .sv-sbar { position: absolute; left: 12px; bottom: 10px; pointer-events: none; font-family: var(--mono); font-size: 10.5px; color: #bfe6ff; }
+  .sv-sbar i { display: block; height: 5px; border: 2px solid #bfe6ff; border-top: 0; margin-bottom: 2px; }
+  .sv-load { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+  .sv-nav { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-top: 1px solid var(--line); }
+  .sv-nav input { flex: 1; } .sv-pos { font-family: var(--mono); font-size: 11.5px; color: var(--muted); min-width: 52px; text-align: right; }
+  .sv-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding: 4px 10px 6px; }
+  .sv-tools .seg { grid-template-columns: repeat(3, auto); } .sv-tools .seg button { padding: 4px 9px; }
+  .sv-tools .toggle.small { margin: 0; }
+  .sv-list { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 10px 6px; max-height: 92px; overflow-y: auto; }
+  .sv-list .hint { flex: 1 1 100%; font-size: 11px; }
+  .sv-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.04); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); border-radius: 12px; padding: 2px 9px; font-size: 11.5px; cursor: pointer; }
+  .sv-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+  .sv-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+  .sv-desc { padding: 2px 10px 8px; font-size: 11.5px; color: #c4d0e4; max-height: 120px; overflow-y: auto; }
+  .sv-desc p { margin: 3px 0; } .sv-approx { color: #c9a86a; }
+  .sv-ref { stroke: rgba(92,198,255,.45); stroke-width: 1; } .sv-ref.on { stroke: #5cff9a; stroke-width: 1.6; }
+  .sv-hit { stroke: transparent; cursor: pointer; pointer-events: stroke; } .sv-hit:hover { stroke: rgba(92,255,154,.35); }
+  .sv-reft { fill: rgba(140,200,255,.8); font-family: var(--mono); paint-order: stroke; stroke: #000; stroke-width: .25em; } .sv-reft.on { fill: #5cff9a; }
+  .sv-level { fill: #ffd75e; font-family: var(--mono); font-weight: 600; paint-order: stroke; stroke: #000; stroke-width: .3em; pointer-events: none; }
+  .sv-lead { stroke: color-mix(in srgb, var(--c) 70%, #fff); stroke-width: 1; opacity: .8; }
+  .sv-note { cursor: pointer; } .sv-note .ring { opacity: .75; }
+  .sv-lab { fill: #fff; font-weight: 600; paint-order: stroke; stroke: rgba(0,0,0,.85); stroke-width: .3em; }
+  .sv-note:hover .sv-lab { fill: color-mix(in srgb, var(--c) 60%, #fff); }
+  .sv-note.flash { animation: svflash .6s ease-in-out 4; } @keyframes svflash { 50% { opacity: .2; } }
+  .sv-cur line { stroke: #5cff9a; stroke-width: 1.5; } .sv-cur text { fill: #5cff9a; font-family: var(--mono); }
+  .sv-cur.far line { stroke-dasharray: 3 3; opacity: .7; }
   #loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; letter-spacing: .05em; }
   footer { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 16px; border-top: 1px solid var(--line); font-size: 11px; color: var(--faint); background: #05080f; white-space: nowrap; overflow: hidden; }
   #disclaimer { color: #c9a86a; flex: none; }
   .keys { font-family: var(--mono); font-size: 10.5px; color: var(--faint); line-height: 1.6; }
   #attribution { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
   #errs { color: #ff8a8a; font-family: var(--mono); }
-  @media (max-width: 1360px) { #app { --lw: 240px; --rw: 290px; } #study { display: none; } }
+
+  /* report-vs-images status (neutral ink: the colours stay for severity) */
+  .st { font-size: 10.5px; color: #cfd9ea; border: 1px solid rgba(207,217,234,.35); border-radius: 10px; padding: 1px 7px; white-space: nowrap; }
+  .st-revised, .st-new { border-color: rgba(255,207,122,.6); color: #ffe1a8; }
+  .st-unconfirmed { border-style: dashed; color: var(--muted); }
+  .card-head .st { margin: 0 auto 0 6px; }
+  #card .vs { margin: 0 0 4px; font-size: 12px; color: #b9c6dc; background: rgba(255,255,255,.04); border-left: 2px solid rgba(255,207,122,.6); padding: 4px 8px; border-radius: 0 6px 6px 0; }
+  #card .vs b { color: #ffe1a8; font-weight: 600; }
+  .findings .row2 { margin: 3px 0 0 16px; }
+
+  /* guide: plan, measurements, safety */
+  #guide { position: fixed; inset: 52px 0 30px 0; z-index: 40; background: rgba(2,4,9,.6); display: flex; align-items: flex-start; justify-content: center; padding: 18px; overflow-y: auto; }
+  .gbox { width: min(900px, 100%); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .ghead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel-solid); border-radius: 14px 14px 0 0; }
+  .gtabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .gtabs button { background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--muted); font-weight: 600; }
+  .gtabs button.on { background: rgba(92,198,255,.16); border-color: rgba(92,198,255,.6); color: #fff; }
+  .ghead .x { background: none; border: 0; font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; }
+  .gbody { padding: 14px 16px 6px; }
+  .gbody h3 { margin: 0 0 6px; font-size: 13.5px; }
+  .gbody ul { margin: 0; padding-left: 18px; color: #cfd9ea; } .gbody li { margin: 3px 0; }
+  .gnote { padding: 8px 16px 12px; color: #c9a86a; font-size: 11.5px; }
+  .plan { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pl { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-left: 4px solid var(--k); border-radius: 8px; background: rgba(255,255,255,.02); }
+  .pl h3 { color: var(--k); }
+  .pl-emergency { --k: var(--critical); grid-column: 1 / -1; } .pl-today { --k: var(--serious); } .pl-days { --k: var(--warning); } .pl-weeks { --k: var(--accent); } .pl-later { --k: var(--accent2); }
+  .chart { margin: 0 0 16px; } .chart svg { width: 100%; height: auto; display: block; }
+  .chart .ax { stroke: rgba(143,160,189,.25); } .chart text { fill: var(--muted); font: 11px var(--sans); } .chart .lv { fill: var(--ink); font-weight: 600; }
+  .chart .val { fill: var(--ink); font-family: var(--mono); font-size: 11px; }
+  .chart .row { cursor: pointer; } .chart .row:hover .hit { fill: rgba(92,198,255,.08); } .chart .hit { fill: transparent; }
+  .legend-line { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; color: var(--muted); margin: 4px 0 6px; }
+  .legend-line i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .nums { width: 100%; border-collapse: collapse; font-size: 12.5px; } .nums td { padding: 5px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+  .nums td:first-child { color: var(--muted); width: 32%; } .nums td:last-child { width: 1%; }
+  .safety { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .safety section, .faint { margin: 0 0 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+  .safety .do h3 { color: #7fe08a; } .safety .dont h3 { color: #ff9a8a; } .faint h3 { color: #ffcf7a; } .faint p { margin: 0; color: #cfd9ea; }
+
+  /* guided tour */
+  #tourbar { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 150px);
+    background: rgba(9,14,27,.94); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 6px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #tourbar .tstep { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+  #tourbar .tttl { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; border-left: 3px solid var(--c); padding-left: 8px; }
+  #tourbar .x { background: none; border: 0; font-size: 18px; color: var(--muted); cursor: pointer; }
+  @media (min-width: 821px) { #app.touring #voiceHint { top: 64px; } }
+  #tourbar button[disabled] { opacity: .4; cursor: default; }
+  @media (max-width: 1800px) { #study { display: none; } }
+  @media (max-width: 1500px) { #animBtn .lbl, #voiceBtn .lbl, #tourBtn .lbl { display: none; } }
+  @media (max-width: 1360px) { #app { --lw: 240px; --rw: 290px; } #doctorBtn .lbl, #scanBtn .lbl { display: none; } }
   @media (max-width: 1100px) { #app { --lw: 220px; } }
   /* phone: the 3D view takes the screen; both panels are drawers over it */
   @media (max-width: 820px) {
@@ -166,6 +258,12 @@
     #caption { top: 8px; bottom: auto; left: 8px; right: 80px; transform: none; max-width: none; font-size: 12.5px; line-height: 1.4; padding: 6px 10px; }
     #voiceHint { top: auto; bottom: 12px; left: 8px; right: 8px; transform: none; text-align: center; }
     #card { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: 52%; }
+    #guide { inset: 48px 0 0 0; padding: 0; } .gbox { border-radius: 0; min-height: 100%; } .ghead { border-radius: 0; }
+    .plan, .safety { grid-template-columns: 1fr; }
+    #tourbar { left: 8px; right: 80px; top: 8px; transform: none; max-width: none; } #tourbar .tstep { display: none; }
+    #app.touring #caption { top: 56px; }
+    #scanview { position: fixed; top: 48px; left: 0; right: 0; bottom: 0; z-index: 28; } #app.scan-open { grid-template-columns: 1fr; }
+    .sv-desc { max-height: 70px; } .sv-tools { gap: 2px 8px; }
     #slicebox { left: 8px; right: 8px; top: 80px; width: auto; } #slicebox.mini { right: auto; width: 140px; top: 8px; }
     #readout { bottom: 10px; right: 8px; } #scalebar { bottom: 10px; left: 10px; }
   }
@@ -178,6 +276,9 @@
     <div class="brand"><div class="logo"></div><div id="title"></div></div>
     <div id="study"></div>
     <div class="spacer"></div>
+    <button class="tbtn" id="guideBtn"></button>
+    <button class="tbtn" id="tourBtn"></button>
+    <button class="tbtn" id="scanBtn" hidden></button>
     <button class="tbtn" id="voiceBtn"></button>
     <select class="tbtn" id="ttsVoice" hidden></select>
     <button class="tbtn" id="animBtn"></button>
@@ -197,9 +298,11 @@
     <div id="readout"></div>
     <div id="voiceHint" hidden></div>
     <div id="slicebox" hidden></div>
+    <div id="tourbar" hidden></div>
   </main>
   <aside id="right"></aside>
   <div id="scrim" hidden></div>
+  <div id="guide" hidden></div>
   <footer><span id="disclaimer"></span><span id="attribution"></span><span id="errs" hidden></span></footer>
 </div>
 <script src="data/geometry.js"></script>
